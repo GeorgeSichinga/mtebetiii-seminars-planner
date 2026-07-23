@@ -23,10 +23,7 @@ class StudentIntakeForm(forms.ModelForm):
                 "rows": 4,
                 "placeholder": "Background / Learning Goals",
             }),
-            "goal_notes": forms.TextInput(attrs={
-                "class": "w-full border-0 border-b rule bg-transparent px-1 py-2 text-sm focus:outline-none focus:border-[var(--mustard)]",
-                "placeholder": "e.g. panel data methods for my thesis",
-            }),
+            "goal_notes": forms.HiddenInput(),
             "python_level": forms.RadioSelect,
             "r_level": forms.RadioSelect,
             "stata_level": forms.RadioSelect,
