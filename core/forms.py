@@ -11,15 +11,15 @@ class StudentIntakeForm(forms.ModelForm):
         ]
         widgets = {
             "name": forms.TextInput(attrs={
-                "class": "w-full border border-gray-300 rounded-md px-3 py-2",
+                "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
                 "placeholder": "Full Name",
             }),
             "email": forms.EmailInput(attrs={
-                "class": "w-full border border-gray-300 rounded-md px-3 py-2",
+                "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
                 "placeholder": "Email Address",
             }),
             "background_notes": forms.Textarea(attrs={
-                "class": "w-full border border-gray-300 rounded-md px-3 py-2",
+                "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
                 "rows": 4,
                 "placeholder": "Background / Learning Goals",
             }),
@@ -43,12 +43,12 @@ class SessionForm(forms.ModelForm):
         model = Session
         fields = ["student", "topic", "scheduled_for", "notes"]
         widgets = {
-            "student": forms.Select(attrs={"class": "w-full border border-gray-300 rounded-md px-3 py-2"}),
-            "topic": forms.Select(attrs={"class": "w-full border border-gray-300 rounded-md px-3 py-2"}),
+            "student": forms.Select(attrs={"class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]"}),
+            "topic": forms.Select(attrs={"class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]"}),
             "scheduled_for": forms.DateTimeInput(
-                attrs={"type": "datetime-local", "class": "w-full border border-gray-300 rounded-md px-3 py-2"}
+                attrs={"type": "datetime-local", "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]"}
             ),
-            "notes": forms.Textarea(attrs={"class": "w-full border border-gray-300 rounded-md px-3 py-2", "rows": 3}),
+            "notes": forms.Textarea(attrs={"class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]", "rows": 3}),
         }
 
 
@@ -58,11 +58,11 @@ class NoteForm(forms.ModelForm):
         fields = ["title", "content", "attachment"]
         widgets = {
             "title": forms.TextInput(attrs={
-                "class": "w-full border-0 border-b rule bg-transparent px-1 py-2 text-sm focus:outline-none",
+                "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
                 "placeholder": "Note title",
             }),
             "content": forms.Textarea(attrs={
-                "class": "w-full border-0 border-b rule bg-transparent px-1 py-2 text-sm focus:outline-none",
+                "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
                 "rows": 5,
                 "placeholder": "Write your note here...",
             }),

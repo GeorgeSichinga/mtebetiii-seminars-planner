@@ -1,9 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
+{% block nav_dashboard %}accent{% endblock %}
 {% block content %}
-<div class="mb-6">
-  <label class="text-sm text-gray-500">Viewing student:</label>
-  <select onchange="window.location = '/dashboard/' + this.value + '/'" class="border border-gray-300 rounded-md px-2 py-1 text-sm">
+
+<h1 class="text-xl font-bold mb-6">Dashboard</h1>
+
+<div class="mb-8">
+  <label class="text-xs opacity-60 block mb-1">viewing student</label>
+  <select onchange="window.location = '/dashboard/' + this.value + '/'"
+    class="border rule bg-transparent px-2 py-1.5 text-sm">
     {% for s in students %}
       <option value="{{ s.id }}" {% if student and s.id == student.id %}selected{% endif %}>{{ s.name }}</option>
     {% endfor %}
@@ -11,46 +16,46 @@
 </div>
 
 {% if student %}
-  <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-    <h2 class="font-serif-custom text-lg font-semibold">{{ student.name }}</h2>
-    <p class="text-sm text-gray-500">{{ student.email }}</p>
+  <div class="border-b rule pb-6 mb-8">
+    <h2 class="text-lg font-bold">{{ student.name }}</h2>
+    <p class="opacity-60 text-xs mt-1">{{ student.email }}</p>
     {% if student.background_notes %}
-      <p class="text-sm mt-2">{{ student.background_notes }}</p>
+      <p class="text-sm mt-3 leading-relaxed">{{ student.background_notes }}</p>
     {% endif %}
   </div>
 
-  <div class="grid md:grid-cols-2 gap-6">
-    <div class="bg-white rounded-lg border border-gray-200 p-6">
-      <h3 class="font-serif-custom font-semibold mb-3">Selected Topics ({{ selections|length }})</h3>
-      <ul class="space-y-2 text-sm">
+  <div class="grid md:grid-cols-2 gap-10">
+    <div>
+      <h3 class="font-bold mb-4">Selected Topics ({{ selections|length }})</h3>
+      <ul class="space-y-3 text-sm">
         {% for sel in selections %}
-          <li class="flex items-center justify-between">
+          <li class="flex items-center justify-between border-b rule pb-3">
             <span>{{ sel.topic.title }}</span>
-            <span class="text-xs px-2 py-0.5 rounded-full {% if sel.completed %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
-              {% if sel.completed %}Done{% else %}Pending{% endif %}
+            <span class="text-xs px-2 py-0.5 border rule {% if sel.completed %}bg-[var(--accent)] text-white border-[var(--accent)]{% else %}opacity-60{% endif %}">
+              {% if sel.completed %}done{% else %}pending{% endif %}
             </span>
           </li>
         {% empty %}
-          <li class="text-gray-500">No topics selected yet.</li>
+          <li class="opacity-60">No topics selected yet.</li>
         {% endfor %}
       </ul>
     </div>
 
-    <div class="bg-white rounded-lg border border-gray-200 p-6">
-      <h3 class="font-serif-custom font-semibold mb-3">Assignments ({{ assignments|length }})</h3>
-      <ul class="space-y-2 text-sm">
+    <div>
+      <h3 class="font-bold mb-4">Assignments ({{ assignments|length }})</h3>
+      <ul class="space-y-3 text-sm">
         {% for a in assignments %}
-          <li class="flex items-center justify-between">
+          <li class="flex items-center justify-between border-b rule pb-3">
             <span>{{ a.title }}</span>
-            <span class="text-xs text-gray-500">{{ a.due_date|default:"No due date" }}</span>
+            <span class="opacity-60 text-xs">{{ a.due_date|default:"no due date" }}</span>
           </li>
         {% empty %}
-          <li class="text-gray-500">No assignments yet.</li>
+          <li class="opacity-60">No assignments yet.</li>
         {% endfor %}
       </ul>
     </div>
   </div>
 {% else %}
-  <p class="text-gray-500">No students registered yet. <a href="{% url 'starter_pack' %}" class="underline">Create one</a>.</p>
+  <p class="opacity-70 text-sm">No students registered yet. <a href="{% url 'starter_pack' %}" class="underline">Create one</a>.</p>
 {% endif %}
 {% endblock %}

@@ -79,29 +79,29 @@
   </div>
 </footer>
 
-<div id="coffee-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-  <div class="bg-[var(--bg)] border rule max-w-md w-full p-6 relative text-sm">
+<div id="coffee-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+  <div class="bg-white dark:bg-[#1e1f27] border rule max-w-md w-full p-6 relative text-sm text-[var(--ink)] dark:text-[var(--ink-dark)]">
     <button onclick="document.getElementById('coffee-modal').classList.add('hidden')"
       class="absolute top-3 right-3">[x]</button>
     <h3 class="font-bold text-base mb-1">Support this project</h3>
     <p class="text-xs mb-5 opacity-70">If this planner has been useful, a contribution through any of these is appreciated.</p>
 
     <div class="space-y-3">
-      <div class="flex items-center gap-3 border rule p-3">
+      <div class="flex items-center gap-3 border rule p-3 bg-black/[0.02] dark:bg-white/[0.03]">
         <img src="{% static 'img/nbm.jpg' %}" alt="National Bank" class="w-9 h-9 object-contain">
         <div>
           <p class="font-medium">National Bank of Malawi</p>
           <p class="opacity-70 text-xs">Acc: 1006192927 &middot; George Sichinga</p>
         </div>
       </div>
-      <div class="flex items-center gap-3 border rule p-3">
+      <div class="flex items-center gap-3 border rule p-3 bg-black/[0.02] dark:bg-white/[0.03]">
         <img src="{% static 'img/airtelmoney.png' %}" alt="Airtel Money" class="w-9 h-9 object-contain">
         <div>
           <p class="font-medium">Airtel Money</p>
           <p class="opacity-70 text-xs">+265 997 079 810</p>
         </div>
       </div>
-      <div class="flex items-center gap-3 border rule p-3">
+      <div class="flex items-center gap-3 border rule p-3 bg-black/[0.02] dark:bg-white/[0.03]">
         <img src="{% static 'img/mpamba.jpeg' %}" alt="TNM Mpamba" class="w-9 h-9 object-contain">
         <div>
           <p class="font-medium">TNM Mpamba</p>

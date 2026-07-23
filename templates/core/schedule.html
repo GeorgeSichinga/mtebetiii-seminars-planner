@@ -1,37 +1,55 @@
 {% extends "base.html" %}
 {% block title %}Schedule{% endblock %}
+{% block nav_schedule %}accent{% endblock %}
 {% block content %}
-<div class="grid md:grid-cols-2 gap-8">
-  <div class="bg-white rounded-lg border border-gray-200 p-6">
-    <h2 class="font-serif-custom text-lg font-semibold mb-4">Plan a Session</h2>
-    <form method="post" class="space-y-3">
+
+<h1 class="text-xl font-bold mb-8">Schedule</h1>
+
+<div class="grid md:grid-cols-2 gap-10">
+  <div>
+    <h2 class="text-lg font-bold mb-4">Plan a Session</h2>
+    <form method="post" class="space-y-4">
       {% csrf_token %}
-      {{ form.student.label_tag }} {{ form.student }}
-      {{ form.topic.label_tag }} {{ form.topic }}
-      {{ form.scheduled_for.label_tag }} {{ form.scheduled_for }}
-      {{ form.notes.label_tag }} {{ form.notes }}
-      <button type="submit" class="bg-gray-900 text-white px-4 py-2 rounded-md text-sm">Schedule Session</button>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">student</label>
+        {{ form.student }}
+      </div>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">topic</label>
+        {{ form.topic }}
+      </div>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">scheduled for</label>
+        {{ form.scheduled_for }}
+      </div>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">notes</label>
+        {{ form.notes }}
+      </div>
+      <button type="submit" class="bg-[var(--accent)] text-white px-5 py-2.5 text-sm hover:opacity-90 transition">
+        schedule_session()
+      </button>
     </form>
   </div>
 
-  <div class="bg-white rounded-lg border border-gray-200 p-6">
-    <h2 class="font-serif-custom text-lg font-semibold mb-4">Upcoming &amp; Past Sessions</h2>
-    <ul class="space-y-3 text-sm">
+  <div>
+    <h2 class="text-lg font-bold mb-4">Upcoming &amp; Past Sessions</h2>
+    <ul class="space-y-4">
       {% for session in sessions %}
-        <li class="flex items-center justify-between border-b border-gray-100 pb-2">
+        <li class="flex items-center justify-between border-b rule pb-4">
           <div>
             <p class="font-medium">{{ session.student.name }}{% if session.topic %} &mdash; {{ session.topic.title }}{% endif %}</p>
-            <p class="text-gray-500">{{ session.scheduled_for }}</p>
+            <p class="opacity-60 text-xs mt-1">{{ session.scheduled_for }}</p>
           </div>
           <form method="post" action="{% url 'toggle_session_complete' session.id %}">
             {% csrf_token %}
-            <button type="submit" class="text-xs px-2 py-1 rounded-full {% if session.is_completed %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-600{% endif %}">
-              {% if session.is_completed %}Completed{% else %}Mark Done{% endif %}
+            <button type="submit" class="text-xs px-3 py-1.5 border rule {% if session.is_completed %}bg-[var(--accent)] text-white border-[var(--accent)]{% else %}hover:border-[var(--accent)]{% endif %} transition">
+              {% if session.is_completed %}completed{% else %}mark done{% endif %}
             </button>
           </form>
         </li>
       {% empty %}
-        <li class="text-gray-500">No sessions scheduled yet.</li>
+        <li class="opacity-60 text-sm">No sessions scheduled yet.</li>
       {% endfor %}
     </ul>
   </div>
