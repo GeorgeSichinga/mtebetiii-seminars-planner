@@ -78,11 +78,14 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Email Configuration via Resend
-EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
-ANYMAIL = {
-    "RESEND_API_KEY": config("RESEND_API_KEY", default="re_placeholder_key"),
-}
+# Email ConEMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+RESEND_API_KEY = config("RESEND_API_KEY", default="")
+
+if RESEND_API_KEY:
+    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+    ANYMAIL = {"RESEND_API_KEY": RESEND_API_KEY}
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="learning@yourdomain.com")
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

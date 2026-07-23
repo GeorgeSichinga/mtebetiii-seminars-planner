@@ -5,15 +5,21 @@
 
 <h1 class="text-xl font-bold mb-6">Dashboard</h1>
 
+{% if not student %}
 <div class="mb-8">
-  <label class="text-xs opacity-60 block mb-1">viewing student</label>
-  <select onchange="window.location = '/dashboard/' + this.value + '/'"
-    class="border rule bg-transparent px-2 py-1.5 text-sm">
-    {% for s in students %}
-      <option value="{{ s.id }}" {% if student and s.id == student.id %}selected{% endif %}>{{ s.name }}</option>
-    {% endfor %}
-  </select>
+  <p class="text-xs opacity-60 mb-2">Enter the email you registered with and we'll email you a login link (valid 15 minutes).</p>
+  <form method="post" action="{% url 'request_magic_link' %}" class="flex gap-2">
+    {% csrf_token %}
+    <input type="email" name="email" placeholder="your registered email"
+      class="border rule bg-transparent px-3 py-2 text-sm flex-1 focus:outline-none focus:border-[var(--accent)]" required>
+    <button type="submit" class="bg-[var(--accent)] text-white px-4 py-2 text-sm hover:opacity-90 transition">send login link</button>
+  </form>
 </div>
+{% else %}
+<div class="mb-8 flex justify-end">
+  <a href="{% url 'dashboard_logout' %}" class="text-xs underline opacity-70 hover:accent">log out</a>
+</div>
+{% endif %}
 
 {% if student %}
   <div class="border-b rule pb-6 mb-8">
@@ -55,7 +61,5 @@
       </ul>
     </div>
   </div>
-{% else %}
-  <p class="opacity-70 text-sm">No students registered yet. <a href="{% url 'starter_pack' %}" class="underline">Create one</a>.</p>
 {% endif %}
 {% endblock %}

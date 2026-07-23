@@ -2,9 +2,12 @@ from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from django.utils import timezone
 from django.contrib import messages
-from django.db.models import Prefetch
+from django.utils import timezone
+from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+from django.core.mail import send_mail
+from django.conf import settings
+from django.urls import reverse
 
 from .forms import StudentIntakeForm, SessionForm, NoteForm
 from .models import Student, Topic, StudentTopicSelection, Session, Assignment, Note
@@ -12,7 +15,6 @@ from .models import Student, Topic, StudentTopicSelection, Session, Assignment, 
 
 def starter_pack(request):
     """Intake form + topic picker."""
-    students = Student.objects.all()
     topics = Topic.objects.all()
     tracks = {}
     for topic in topics:
@@ -34,23 +36,28 @@ def starter_pack(request):
 
     context = {
         "form": form,
-        "students": students,
         "tracks": tracks,
         "topic_count": topics.count(),
     }
     return render(request, "core/starter_pack.html", context)
 
 
+SIGNER = TimestampSigner(salt="mtebetiii-dashboard-login")
+MAGIC_LINK_MAX_AGE = 60 * 15  # 15 minutes
+
+
 def dashboard(request, student_id=None):
-    students = Student.objects.all()
     student = None
     selections = []
     assignments = []
 
     if student_id:
-        student = get_object_or_404(Student, id=student_id)
-    elif students.exists():
-        student = students.first()
+        candidate = get_object_or_404(Student, id=student_id)
+        if request.session.get("student_id") == candidate.id:
+            student = candidate
+        else:
+            messages.error(request, "Please log in to view that dashboard.")
+            return redirect("dashboard")
 
     if student:
         selections = (
@@ -60,12 +67,60 @@ def dashboard(request, student_id=None):
         assignments = Assignment.objects.filter(student=student)
 
     context = {
-        "students": students,
         "student": student,
         "selections": selections,
         "assignments": assignments,
     }
     return render(request, "core/dashboard.html", context)
+
+
+def request_magic_link(request):
+    email = request.POST.get("email", "").strip()
+    if not email:
+        messages.error(request, "Please enter your registered email.")
+        return redirect("dashboard")
+
+    student = Student.objects.filter(email__iexact=email).first()
+    if not student:
+        messages.error(request, "No student found with that email. Register on the Starter Pack page first.")
+        return redirect("dashboard")
+
+    token = SIGNER.sign(str(student.id))
+    link = request.build_absolute_uri(reverse("dashboard_login", args=[token]))
+
+    send_mail(
+        "Your dashboard login link",
+        f"Hi {student.name},\n\nClick this link to view your dashboard "
+        f"(valid for 15 minutes):\n\n{link}\n",
+        getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
+        [student.email],
+        fail_silently=False,
+    )
+
+    messages.success(request, "A login link has been sent to your email. Check your inbox.")
+    return redirect("dashboard")
+
+
+def dashboard_login(request, token):
+    try:
+        student_id = int(SIGNER.unsign(token, max_age=MAGIC_LINK_MAX_AGE))
+    except SignatureExpired:
+        messages.error(request, "That login link has expired. Please request a new one.")
+        return redirect("dashboard")
+    except BadSignature:
+        messages.error(request, "That login link is invalid.")
+        return redirect("dashboard")
+
+    student = get_object_or_404(Student, id=student_id)
+    request.session["student_id"] = student.id
+    messages.success(request, f"Welcome back, {student.name}.")
+    return redirect("dashboard", student_id=student.id)
+
+
+def dashboard_logout(request):
+    request.session.pop("student_id", None)
+    messages.success(request, "Logged out.")
+    return redirect("dashboard")
 
 
 def schedule(request):
