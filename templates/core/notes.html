@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Notes{% endblock %}
+{% block nav_notes %}accent{% endblock %}
+{% block content %}
+
+<h1 class="text-xl font-bold mb-6">Notes</h1>
+
+<div class="grid md:grid-cols-2 gap-10">
+  <div>
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+      {% csrf_token %}
+      {{ form.title }}
+      {{ form.content }}
+      <div>
+        <label class="block text-xs opacity-60 mb-1">attachment (optional)</label>
+        {{ form.attachment }}
+      </div>
+      <button type="submit" class="bg-[var(--accent)] text-white px-5 py-2.5 text-sm hover:opacity-90 transition">
+        upload_note()
+      </button>
+    </form>
+  </div>
+
+  <div>
+    <p class="text-xs opacity-60 mb-3">{{ notes|length }} note(s)</p>
+    <ul class="space-y-5">
+      {% for note in notes %}
+        <li class="border-b rule pb-4">
+          <p class="font-bold">{{ note.title }}</p>
+          <p class="text-xs opacity-60 mb-2">{{ note.created_at|date:"d M Y, H:i" }}</p>
+          {% if note.content %}<p class="text-sm mb-2 leading-relaxed">{{ note.content }}</p>{% endif %}
+          {% if note.attachment %}
+            <a href="{{ note.attachment.url }}" target="_blank" class="text-xs underline">view attachment</a>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li class="opacity-60 text-sm">No notes yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

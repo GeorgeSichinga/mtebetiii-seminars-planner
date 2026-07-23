@@ -1,0 +1,112 @@
+﻿
+
+
+    
+    
+    Data Notebook Planner
+    
+
+
+
+    
+        
+            📚 Data Notebook Planner
+        
+    
+
+    
+        
+            
+            
+            
+                
+                    
+                        Create Student Planner
+                    
+                    
+                        
+                            
+                            
+                                Full Name
+                                
+                            
+                            
+                                Email Address
+                                
+                            
+                            
+                                Background / Learning Goals
+                                
+                            
+                            Save & Start Plan
+                        
+                    
+                
+
+                
+                
+                    
+                        Enrolled Students ({{ students|length }})
+                    
+                    
+                        {% for student in students %}
+                        
+                            
+                                {{ student.name }}
+                                {{ student.email }}
+                            
+                            Active
+                        
+                        {% empty %}
+                        No students registered yet.
+                        {% endfor %}
+                    
+                
+            
+
+            
+            
+                
+                    
+                        Course Curriculum & Topics
+                        {{ topics|length }} Topics Loaded
+                    
+                    
+                        {% if topics %}
+                            
+                            {% for topic in topics %}
+                                
+                                    
+                                        
+                                            
+                                                #{{ topic.order|default:forloop.counter }}
+                                                {{ topic.title }}
+                                                {% if topic.track %}
+                                                    {{ topic.track }}
+                                                {% endif %}
+                                            
+                                        
+                                    
+                                    
+                                        
+                                            {{ topic.description|default:"No description provided for this topic module." }}
+                                        
+                                    
+                                
+                            {% endfor %}
+                            
+                        {% else %}
+                            
+                                No topics found in the database. Run python manage.py seed_topics in your terminal to populate them!
+                            
+                        {% endif %}
+                    
+                
+            
+
+        
+    
+
+    
+
+

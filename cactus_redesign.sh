@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+# Run from inside "planner website/"
+set -e
+
+echo "Applying Cactus-style redesign..."
+
+# ---------------------------------------------------------------------------
+# templates/base.html
+# ---------------------------------------------------------------------------
+cat > templates/base.html << 'EOF'
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="cactus-html">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Mtebetiii Seminars and Talks{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafafa;
+    --bg-dark: #16171d;
+    --ink: #16171d;
+    --ink-dark: #e8e8e8;
+    --accent: #d14343;
+    --rule: #e2e2e2;
+    --rule-dark: #2c2d35;
+  }
+  html.cactus-html { font-family: 'IBM Plex Mono', monospace; }
+  body { background: var(--bg); color: var(--ink); transition: background .15s, color .15s; }
+  html.dark body { background: var(--bg-dark); color: var(--ink-dark); }
+  .accent { color: var(--accent); }
+  .rule { border-color: var(--rule); }
+  html.dark .rule { border-color: var(--rule-dark); }
+  a.nav-link { position: relative; }
+  a.nav-link:hover { color: var(--accent); }
+  .cactus-card { background: transparent; }
+  html.dark .cactus-card-bg { background: #1e1f27; }
+</style>
+</head>
+<body class="text-sm">
+<a href="#main" class="sr-only">Skip to content</a>
+
+<header class="max-w-2xl mx-auto px-4 pt-8 pb-4 flex items-center justify-between">
+  <a href="{% url 'starter_pack' %}" class="flex items-center gap-3">
+    <img src="{% static 'img/welcome.gif' %}" alt="" class="w-10 h-10 rounded-sm object-cover border rule">
+    <span class="font-bold text-lg tracking-tight">Mtebetiii Seminars</span>
+  </a>
+  <button onclick="toggleTheme()" aria-label="Toggle theme" class="text-lg leading-none">
+    <span id="theme-icon">&#9788;</span>
+  </button>
+</header>
+
+<nav class="max-w-2xl mx-auto px-4 pb-6 flex gap-5 text-sm border-b rule">
+  <a href="{% url 'starter_pack' %}" class="nav-link pb-3 {% block nav_starter %}{% endblock %}">Starter Pack</a>
+  <a href="{% url 'dashboard' %}" class="nav-link pb-3 {% block nav_dashboard %}{% endblock %}">Dashboard</a>
+  <a href="{% url 'schedule' %}" class="nav-link pb-3 {% block nav_schedule %}{% endblock %}">Schedule</a>
+</nav>
+
+<main id="main" class="max-w-2xl mx-auto px-4 py-10">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-6 px-4 py-2 border-l-2 accent border-l-[var(--accent)] text-sm">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="max-w-2xl mx-auto px-4 py-8 border-t rule mt-10 flex items-center justify-between text-xs">
+  <p>&copy; {% now "Y" %} George Sichinga. Mtebetiii Seminars and Talks</p>
+  <div class="flex items-center gap-4">
+    <a href="https://github.com/GeorgeSichinga" target="_blank" rel="noopener" class="flex items-center gap-1 nav-link">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+        0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07
+        -1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44
+        1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      github.com/GeorgeSichinga
+    </a>
+    <button onclick="document.getElementById('coffee-modal').classList.remove('hidden')"
+      class="flex items-center gap-1 nav-link">
+      <img src="{% static 'img/coffee.webp' %}" alt="" class="w-4 h-4">
+      buy me a coffee
+    </button>
+  </div>
+</footer>
+
+<div id="coffee-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+  <div class="bg-[var(--bg)] border rule max-w-md w-full p-6 relative text-sm">
+    <button onclick="document.getElementById('coffee-modal').classList.add('hidden')"
+      class="absolute top-3 right-3">[x]</button>
+    <h3 class="font-bold text-base mb-1">Support this project</h3>
+    <p class="text-xs mb-5 opacity-70">If this planner has been useful, a contribution through any of these is appreciated.</p>
+
+    <div class="space-y-3">
+      <div class="flex items-center gap-3 border rule p-3">
+        <img src="{% static 'img/nbm.jpg' %}" alt="National Bank" class="w-9 h-9 object-contain">
+        <div>
+          <p class="font-medium">National Bank of Malawi</p>
+          <p class="opacity-70 text-xs">Acc: 1006192927 &middot; George Sichinga</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 border rule p-3">
+        <img src="{% static 'img/airtelmoney.png' %}" alt="Airtel Money" class="w-9 h-9 object-contain">
+        <div>
+          <p class="font-medium">Airtel Money</p>
+          <p class="opacity-70 text-xs">+265 997 079 810</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 border rule p-3">
+        <img src="{% static 'img/mpamba.jpeg' %}" alt="TNM Mpamba" class="w-9 h-9 object-contain">
+        <div>
+          <p class="font-medium">TNM Mpamba</p>
+          <p class="opacity-70 text-xs">+265 883 873 380</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function applyTheme(dark) {
+    document.documentElement.classList.toggle('dark', dark);
+    document.getElementById('theme-icon').innerHTML = dark ? '&#9789;' : '&#9788;';
+  }
+  function toggleTheme() {
+    const dark = !document.documentElement.classList.contains('dark');
+    applyTheme(dark);
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+  }
+  (function () {
+    const saved = localStorage.getItem('theme');
+    const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(dark);
+  })();
+</script>
+</body>
+</html>
+EOF
+
+# ---------------------------------------------------------------------------
+# templates/core/starter_pack.html — Cactus-style hero + content
+# ---------------------------------------------------------------------------
+python - << 'PYEOF'
+path = "templates/core/starter_pack.html"
+with open(path) as f:
+    content = f.read()
+
+old_hero = '''<div class="mb-10">
+  <p class="font-mono-custom text-xs text-gray-500 mb-1">welcome</p>
+  <h1 class="font-serif-custom text-3xl font-semibold mb-2">Build your learning plan</h1>
+  <p class="text-sm text-gray-600 max-w-xl">Enter your details, choose the topics you want to cover across Stata, R, Python, and the Capstone track, and this becomes your personal curriculum on the dashboard.</p>
+</div>'''
+
+new_hero = '''<div class="mb-12">
+  <h1 class="text-2xl font-bold mb-4">Hello World!</h1>
+  <p class="mb-3 leading-relaxed opacity-90">
+    Hi, I'm George Sichinga's applied data analysis learning planner. This is a
+    self-paced curriculum tool covering Stata, R, Python, and a Capstone track,
+    built for postgraduate econometrics and data science coursework. Pick the
+    topics you want to cover below, rate your proficiency, and it becomes your
+    personal syllabus on the dashboard.
+  </p>
+  <p class="mb-6 opacity-70 text-xs">
+    If you want to know more about how this was built, click the GitHub icon in the footer below.
+  </p>
+</div>'''
+
+assert old_hero in content, "hero block not found, check starter_pack.html manually"
+content = content.replace(old_hero, new_hero)
+
+# swap class names used in the rest of the page to plain/mono styling
+content = content.replace('font-mono-custom text-xs text-gray-500', 'text-xs opacity-60')
+content = content.replace('font-serif-custom text-xl font-semibold', 'text-lg font-bold')
+content = content.replace('border-b rule', 'border-b rule')
+content = content.replace('bg-[var(--ink)] text-white px-6 py-3 text-sm font-mono-custom hover:bg-black transition',
+                           'bg-[var(--accent)] text-white px-6 py-3 text-sm hover:opacity-90 transition')
+content = content.replace('font-medium group-hover:text-[var(--mustard)]', 'font-medium group-hover:accent')
+content = content.replace('text-gray-500 text-xs mt-0.5', 'opacity-60 text-xs mt-0.5')
+content = content.replace('border-b rule pb-3', 'border-b rule pb-3')
+content = content.replace('hover:text-[var(--mustard)]', 'hover:accent')
+content = content.replace('text-gray-500 font-mono-custom', 'opacity-60')
+content = content.replace('text-gray-500">No students registered yet.', 'opacity-60">No students registered yet.')
+content = content.replace('accent-[var(--mustard)]', 'accent-[var(--accent)]')
+
+with open(path, "w") as f:
+    f.write(content)
+
+print("starter_pack.html restyled to Cactus aesthetic.")
+PYEOF
+
+echo ""
+echo "Done. Restart the server:"
+echo "  python manage.py runserver"

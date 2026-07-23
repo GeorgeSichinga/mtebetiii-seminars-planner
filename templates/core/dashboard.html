@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <label class="text-sm text-gray-500">Viewing student:</label>
+  <select onchange="window.location = '/dashboard/' + this.value + '/'" class="border border-gray-300 rounded-md px-2 py-1 text-sm">
+    {% for s in students %}
+      <option value="{{ s.id }}" {% if student and s.id == student.id %}selected{% endif %}>{{ s.name }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+{% if student %}
+  <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+    <h2 class="font-serif-custom text-lg font-semibold">{{ student.name }}</h2>
+    <p class="text-sm text-gray-500">{{ student.email }}</p>
+    {% if student.background_notes %}
+      <p class="text-sm mt-2">{{ student.background_notes }}</p>
+    {% endif %}
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <h3 class="font-serif-custom font-semibold mb-3">Selected Topics ({{ selections|length }})</h3>
+      <ul class="space-y-2 text-sm">
+        {% for sel in selections %}
+          <li class="flex items-center justify-between">
+            <span>{{ sel.topic.title }}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full {% if sel.completed %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+              {% if sel.completed %}Done{% else %}Pending{% endif %}
+            </span>
+          </li>
+        {% empty %}
+          <li class="text-gray-500">No topics selected yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <h3 class="font-serif-custom font-semibold mb-3">Assignments ({{ assignments|length }})</h3>
+      <ul class="space-y-2 text-sm">
+        {% for a in assignments %}
+          <li class="flex items-center justify-between">
+            <span>{{ a.title }}</span>
+            <span class="text-xs text-gray-500">{{ a.due_date|default:"No due date" }}</span>
+          </li>
+        {% empty %}
+          <li class="text-gray-500">No assignments yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+{% else %}
+  <p class="text-gray-500">No students registered yet. <a href="{% url 'starter_pack' %}" class="underline">Create one</a>.</p>
+{% endif %}
+{% endblock %}
