@@ -26,7 +26,6 @@ def starter_pack(request):
         tracks.setdefault(topic.track, []).append(topic)
 
     if logged_in_student:
-        # Logged-in flow: update this student's own topic selections only.
         if request.method == "POST" and "save_topics" in request.POST:
             selected_ids = set(int(i) for i in request.POST.getlist("topics"))
             existing_ids = set(
@@ -43,6 +42,16 @@ def starter_pack(request):
             messages.success(request, "Your curriculum has been updated.")
             return redirect("starter_pack")
 
+        if request.method == "POST" and "set_password" in request.POST:
+            new_password = request.POST.get("new_password", "").strip()
+            if len(new_password) < 6:
+                messages.error(request, "Password must be at least 6 characters.")
+            else:
+                logged_in_student.set_password(new_password)
+                logged_in_student.save(update_fields=["password_hash"])
+                messages.success(request, "Password set. You can now log in with it next time.")
+            return redirect("starter_pack")
+
         selected_topic_ids = set(
             StudentTopicSelection.objects.filter(student=logged_in_student)
             .values_list("topic_id", flat=True)
@@ -52,10 +61,10 @@ def starter_pack(request):
             "tracks": tracks,
             "topic_count": topics.count(),
             "selected_topic_ids": selected_topic_ids,
+            "has_password": bool(logged_in_student.password_hash),
         }
         return render(request, "core/starter_pack.html", context)
 
-    # Anonymous flow: registration only, curriculum stays hidden until logged in.
     if request.method == "POST":
         form = StudentIntakeForm(request.POST)
         if form.is_valid():
@@ -133,6 +142,20 @@ def request_magic_link(request):
     return redirect("dashboard")
 
 
+def password_login(request):
+    email = request.POST.get("email", "").strip()
+    password = request.POST.get("password", "").strip()
+
+    student = Student.objects.filter(email__iexact=email).first()
+    if not student or not student.check_password(password):
+        messages.error(request, "Incorrect email or password.")
+        return redirect("dashboard")
+
+    request.session["student_id"] = student.id
+    messages.success(request, f"Welcome back, {student.name}.")
+    return redirect("dashboard", student_id=student.id)
+
+
 def dashboard_login(request, token):
     try:
         student_id = int(SIGNER.unsign(token, max_age=MAGIC_LINK_MAX_AGE))
@@ -197,7 +220,6 @@ def schedule(request):
 
 
 def session_ics(request, session_id):
-    """Download a single session as an .ics calendar file."""
     session = get_object_or_404(Session, id=session_id)
 
     start = session.scheduled_for

@@ -7,13 +7,25 @@
 
 {% if not student %}
 <div class="mb-8">
-  <p class="text-xs opacity-60 mb-2">Enter the email you registered with and we'll email you a login link (valid 15 minutes).</p>
-  <form method="post" action="{% url 'request_magic_link' %}" class="flex gap-2">
+  <p class="text-xs opacity-60 mb-2">Log in with your registered email and password.</p>
+  <form method="post" action="{% url 'password_login' %}" class="flex flex-col sm:flex-row gap-2">
     {% csrf_token %}
-    <input type="email" name="email" placeholder="your registered email"
+    <input type="email" name="email" placeholder="email"
       class="border rule bg-transparent px-3 py-2 text-sm flex-1 focus:outline-none focus:border-[var(--accent)]" required>
-    <button type="submit" class="bg-[var(--accent)] text-white px-4 py-2 text-sm hover:opacity-90 transition">send login link</button>
+    <input type="password" name="password" placeholder="password"
+      class="border rule bg-transparent px-3 py-2 text-sm flex-1 focus:outline-none focus:border-[var(--accent)]" required>
+    <button type="submit" class="bg-[var(--accent)] text-white px-4 py-2 text-sm hover:opacity-90 transition whitespace-nowrap">log in</button>
   </form>
+
+  <details class="mt-4">
+    <summary class="text-xs opacity-60 cursor-pointer hover:accent">forgot password or first time logging in?</summary>
+    <form method="post" action="{% url 'request_magic_link' %}" class="flex gap-2 mt-3">
+      {% csrf_token %}
+      <input type="email" name="email" placeholder="your registered email"
+        class="border rule bg-transparent px-3 py-2 text-sm flex-1 focus:outline-none focus:border-[var(--accent)]" required>
+      <button type="submit" class="border rule px-4 py-2 text-sm hover:border-[var(--accent)] transition whitespace-nowrap">send login link</button>
+    </form>
+  </details>
 </div>
 {% else %}
 <div class="mb-8 flex justify-end">
@@ -42,7 +54,7 @@
             </span>
           </li>
         {% empty %}
-          <li class="opacity-60">No topics selected yet.</li>
+          <li class="opacity-60">No topics selected yet. <a href="{% url 'starter_pack' %}" class="underline">Pick some here</a>.</li>
         {% endfor %}
       </ul>
     </div>

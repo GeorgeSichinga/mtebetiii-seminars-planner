@@ -3,24 +3,29 @@ from .models import Student, Session, Topic, Note
 
 
 class StudentIntakeForm(forms.ModelForm):
+    password = forms.CharField(
+        min_length=6,
+        widget=forms.PasswordInput(attrs={
+            "class": "w-full border-0 border-b rule bg-transparent px-1 py-2 text-sm focus:outline-none",
+            "placeholder": "Create a password (min 6 characters)",
+        }),
+    )
+
     class Meta:
         model = Student
-        fields = [
-            "name", "email", "background_notes",
-            "goal_notes", "python_level", "r_level", "stata_level",
-        ]
+        fields = ["name", "email", "background_notes", "goal_notes", "python_level", "r_level", "stata_level"]
         widgets = {
             "name": forms.TextInput(attrs={
-                "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
+                "class": "w-full border-0 border-b rule bg-transparent px-1 py-2 text-sm focus:outline-none",
                 "placeholder": "Full Name",
             }),
             "email": forms.EmailInput(attrs={
-                "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
+                "class": "w-full border-0 border-b rule bg-transparent px-1 py-2 text-sm focus:outline-none",
                 "placeholder": "Email Address",
             }),
             "background_notes": forms.Textarea(attrs={
-                "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
-                "rows": 4,
+                "class": "w-full border-0 border-b rule bg-transparent px-1 py-2 text-sm focus:outline-none",
+                "rows": 3,
                 "placeholder": "Background / Learning Goals",
             }),
             "goal_notes": forms.HiddenInput(),
@@ -28,6 +33,13 @@ class StudentIntakeForm(forms.ModelForm):
             "r_level": forms.RadioSelect,
             "stata_level": forms.RadioSelect,
         }
+
+    def save(self, commit=True):
+        student = super().save(commit=False)
+        student.set_password(self.cleaned_data["password"])
+        if commit:
+            student.save()
+        return student
 
 
 class TopicSelectionForm(forms.Form):
@@ -72,11 +84,11 @@ class NoteForm(forms.ModelForm):
         fields = ["title", "content", "attachment"]
         widgets = {
             "title": forms.TextInput(attrs={
-                "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
+                "class": "w-full border-0 border-b rule bg-transparent px-1 py-2 text-sm focus:outline-none",
                 "placeholder": "Note title",
             }),
             "content": forms.Textarea(attrs={
-                "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
+                "class": "w-full border-0 border-b rule bg-transparent px-1 py-2 text-sm focus:outline-none",
                 "rows": 5,
                 "placeholder": "Write your note here...",
             }),

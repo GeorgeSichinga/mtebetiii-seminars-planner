@@ -17,6 +17,10 @@
     --accent: #d14343;
     --rule: #e2e2e2;
     --rule-dark: #2c2d35;
+    --track-capstone: #6b4a8a;
+    --track-python: #2f6f5e;
+    --track-r: #2f5c8a;
+    --track-stata: #8a3f2f;
   }
   html.cactus-html { font-family: 'IBM Plex Mono', monospace; }
   body { background: var(--bg); color: var(--ink); transition: background .15s, color .15s; }
@@ -24,19 +28,16 @@
   .accent { color: var(--accent); }
   .rule { border-color: var(--rule); }
   html.dark .rule { border-color: var(--rule-dark); }
-  a.nav-link { position: relative; }
   a.nav-link:hover { color: var(--accent); }
-  .cactus-card { background: transparent; }
-  html.dark .cactus-card-bg { background: #1e1f27; }
 </style>
 </head>
 <body class="text-sm">
 <a href="#main" class="sr-only">Skip to content</a>
 
-<header class="max-w-2xl mx-auto px-4 pt-8 pb-4 flex flex-wrap items-center justify-between gap-3">
-  <a href="{% url 'starter_pack' %}" class="flex items-center gap-3">
-    <img src="{% static 'img/welcome.gif' %}" alt="" class="w-10 h-10 rounded-sm object-cover border rule">
-    <span class="font-bold text-lg tracking-tight">Mtebetiii Seminars</span>
+<header class="max-w-2xl mx-auto px-4 pt-8 pb-6 flex flex-wrap items-center justify-between gap-4">
+  <a href="{% url 'starter_pack' %}" class="flex items-center gap-4">
+    <img src="{% static 'img/welcome.gif' %}" alt="" class="w-28 h-28 sm:w-32 sm:h-32 rounded-sm object-cover border rule shrink-0">
+    <span class="font-bold text-xl sm:text-2xl tracking-tight">Mtebetiii Seminars</span>
   </a>
   <button onclick="toggleTheme()" aria-label="Toggle theme" class="text-lg leading-none">
     <span id="theme-icon">&#9788;</span>

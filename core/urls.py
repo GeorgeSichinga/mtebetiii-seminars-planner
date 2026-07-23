@@ -6,6 +6,7 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
     path("dashboard/<int:student_id>/", views.dashboard, name="dashboard"),
     path("dashboard/login/request/", views.request_magic_link, name="request_magic_link"),
+    path("dashboard/login/password/", views.password_login, name="password_login"),
     path("dashboard/login/<str:token>/", views.dashboard_login, name="dashboard_login"),
     path("dashboard/logout/", views.dashboard_logout, name="dashboard_logout"),
     path("schedule/", views.schedule, name="schedule"),

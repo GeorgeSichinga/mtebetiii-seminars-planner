@@ -51,6 +51,13 @@
         {% endfor %}
       </div>
       <div>
+        <label class="block text-xs opacity-60 mb-1">password</label>
+        {{ form.password }}
+        {% for error in form.password.errors %}
+          <p class="text-xs mt-1" style="color: var(--accent);">{{ error }}</p>
+        {% endfor %}
+      </div>
+      <div>
         <label class="block text-xs opacity-60 mb-1">background / goals</label>
         {{ form.background_notes }}
       </div>
@@ -67,7 +74,20 @@
 <div class="border rule p-6 mb-8">
   <p class="text-xs opacity-60 mb-1">logged in as</p>
   <p class="font-bold">{{ student.name }}</p>
-  <p class="text-xs opacity-60">{{ student.email }}</p>
+  <p class="text-xs opacity-60 mb-4">{{ student.email }}</p>
+
+  {% if not has_password %}
+    <p class="text-xs opacity-70 mb-2">Set a password so you can log in instantly next time, instead of waiting for an email link.</p>
+    <form method="post" class="flex gap-2">
+      {% csrf_token %}
+      <input type="hidden" name="set_password" value="1">
+      <input type="password" name="new_password" placeholder="new password (min 6 characters)"
+        class="border rule bg-transparent px-3 py-2 text-sm flex-1 focus:outline-none focus:border-[var(--accent)]" required>
+      <button type="submit" class="border rule px-4 py-2 text-sm hover:border-[var(--accent)] transition whitespace-nowrap">set password</button>
+    </form>
+  {% else %}
+    <p class="text-xs opacity-60">Password login is set up for this account.</p>
+  {% endif %}
 </div>
 
 <form method="post">

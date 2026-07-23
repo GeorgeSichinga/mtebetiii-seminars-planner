@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.hashers import make_password, check_password
 
 
 PROFICIENCY_CHOICES = [
@@ -31,6 +32,7 @@ class Student(models.Model):
     stata_level = models.PositiveSmallIntegerField(
         choices=PROFICIENCY_CHOICES, null=True, blank=True
     )
+    password_hash = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -38,6 +40,14 @@ class Student(models.Model):
 
     def __str__(self):
         return self.name
+
+    def set_password(self, raw_password):
+        self.password_hash = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        if not self.password_hash:
+            return False
+        return check_password(raw_password, self.password_hash)
 
 
 class Topic(models.Model):
