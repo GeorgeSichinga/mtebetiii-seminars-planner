@@ -9,9 +9,8 @@
   Hi, I'm George Sichinga. I teach applied data analysis and econometrics to
   clients and students who want to actually use Stata, R, and Python on their
   own research, not just watch a tutorial. This site is where that teaching
-  happens: pick the topics you want covered below, tell me your current
-  comfort level with each tool, and I'll shape sessions and a syllabus
-  around exactly where you are.
+  happens: register below, and once logged in you'll get access to the full
+  curriculum to pick what you want covered.
 </p>
 
 <div class="mb-12 border rule p-6 flex flex-col sm:flex-row items-center gap-6">
@@ -23,98 +22,60 @@
   </p>
 </div>
 
-<div>
+{% if not student %}
+<div class="border rule p-6 mb-8">
+  <h2 class="text-lg font-bold mb-2">Register</h2>
+  <p class="text-sm opacity-70 mb-6">Already registered? <a href="{% url 'dashboard' %}" class="underline hover:accent">Log in from the Dashboard page</a> instead.</p>
 
-<div class="mb-12 border rule p-6">
-  <p class="text-xs opacity-60 mb-1">before we start</p>
-  <h2 class="text-xl font-bold mb-2">What do you want to learn?</h2>
-  <p class="text-sm opacity-70 mb-6">Tell us your goal and rate yourself on each tool. This helps tailor your plan.</p>
+  {% if form.non_field_errors %}
+    <div class="mb-4 border-l-2 border-l-[var(--accent)] pl-3 text-sm">
+      {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+    </div>
+  {% endif %}
 
-  <div class="mb-6">
-    <label class="block text-xs opacity-60 mb-1">what do you want to learn</label>
-    <input type="text" name="goal_notes_display" id="goal_notes_display"
-      placeholder="e.g. panel data methods for my thesis"
-      class="w-full border-0 border-b rule bg-transparent px-1 py-2 text-sm focus:outline-none"
-      oninput="document.getElementById('id_goal_notes').value = this.value;">
-  </div>
-
-  <div class="space-y-6">
-    <div>
-      <div class="flex items-center gap-2 mb-2">
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" class="w-5 h-5" alt="Python">
-        <span class="font-medium text-sm">Python</span>
-      </div>
-      <div class="flex gap-2">
-        {% for i in "12345" %}
-        <label class="cursor-pointer">
-          <input type="radio" name="python_level" value="{{ forloop.counter }}" class="peer hidden">
-          <span class="flex items-center justify-center w-9 h-9 border rule text-xs peer-checked:bg-[var(--accent)] peer-checked:text-white peer-checked:border-[var(--accent)] hover:border-[var(--accent)] transition">{{ forloop.counter }}</span>
-        </label>
+  <form method="post">
+    {% csrf_token %}
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs opacity-60 mb-1">name</label>
+        {{ form.name }}
+        {% for error in form.name.errors %}
+          <p class="text-xs mt-1" style="color: var(--accent);">{{ error }}</p>
         {% endfor %}
+      </div>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">email</label>
+        {{ form.email }}
+        {% for error in form.email.errors %}
+          <p class="text-xs mt-1" style="color: var(--accent);">{{ error }}</p>
+        {% endfor %}
+      </div>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">background / goals</label>
+        {{ form.background_notes }}
       </div>
     </div>
 
-    <div>
-      <div class="flex items-center gap-2 mb-2">
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/r/r-original.svg" class="w-5 h-5" alt="R">
-        <span class="font-medium text-sm">R</span>
-      </div>
-      <div class="flex gap-2">
-        {% for i in "12345" %}
-        <label class="cursor-pointer">
-          <input type="radio" name="r_level" value="{{ forloop.counter }}" class="peer hidden">
-          <span class="flex items-center justify-center w-9 h-9 border rule text-xs peer-checked:bg-[var(--accent)] peer-checked:text-white peer-checked:border-[var(--accent)] hover:border-[var(--accent)] transition">{{ forloop.counter }}</span>
-        </label>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div>
-      <div class="flex items-center gap-2 mb-2">
-        <img src="https://api.iconify.design/file-icons:stata.svg" class="w-5 h-5" alt="Stata">
-        <span class="font-medium text-sm">Stata</span>
-      </div>
-      <div class="flex gap-2">
-        {% for i in "12345" %}
-        <label class="cursor-pointer">
-          <input type="radio" name="stata_level" value="{{ forloop.counter }}" class="peer hidden">
-          <span class="flex items-center justify-center w-9 h-9 border rule text-xs peer-checked:bg-[var(--accent)] peer-checked:text-white peer-checked:border-[var(--accent)] hover:border-[var(--accent)] transition">{{ forloop.counter }}</span>
-        </label>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
+    <button type="submit" class="mt-6 bg-[var(--accent)] text-white px-6 py-3 text-sm hover:opacity-90 transition">
+      register()
+    </button>
+  </form>
 </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var hiddenGoal = document.getElementById('id_goal_notes');
-    var displayGoal = document.getElementById('goal_notes_display');
-    if (hiddenGoal && displayGoal) {
-      hiddenGoal.type = 'hidden';
-    }
-  });
-</script>
+{% else %}
+
+<div class="border rule p-6 mb-8">
+  <p class="text-xs opacity-60 mb-1">logged in as</p>
+  <p class="font-bold">{{ student.name }}</p>
+  <p class="text-xs opacity-60">{{ student.email }}</p>
+</div>
 
 <form method="post">
   {% csrf_token %}
-  <div class="space-y-4 mb-10 pb-8 border-b rule">
-    <div>
-      <label class="block text-xs opacity-60 mb-1">name</label>
-      {{ form.name }}
-    </div>
-    <div>
-      <label class="block text-xs opacity-60 mb-1">email</label>
-      {{ form.email }}
-    </div>
-    <div>
-      <label class="block text-xs opacity-60 mb-1">background / goals</label>
-      {{ form.background_notes }}
-    </div>
-  </div>
+  <input type="hidden" name="save_topics" value="1">
 
   <div class="flex items-baseline justify-between mb-6">
-    <h2 class="text-lg font-bold">Curriculum</h2>
+    <h2 class="text-lg font-bold">Your Curriculum</h2>
     <span class="text-xs opacity-60">{{ topic_count }} topics</span>
   </div>
 
@@ -134,7 +95,9 @@
       </p>
       {% for topic in topics %}
         <label class="flex items-start gap-3 mb-3 text-sm cursor-pointer group">
-          <input type="checkbox" name="topics" value="{{ topic.id }}" class="mt-1 accent-[var(--accent)]">
+          <input type="checkbox" name="topics" value="{{ topic.id }}"
+            {% if topic.id in selected_topic_ids %}checked{% endif %}
+            class="mt-1 accent-[var(--accent)]">
           <span>
             <span class="font-medium group-hover:accent">{{ topic.title }}</span>
             <span class="block opacity-60 text-xs mt-0.5">{{ topic.description }}</span>
@@ -145,9 +108,9 @@
   {% endfor %}
 
   <button type="submit" class="bg-[var(--accent)] text-white px-6 py-3 text-sm hover:opacity-90 transition">
-    save_and_start_plan()
+    save_curriculum()
   </button>
 </form>
 
-</div>
+{% endif %}
 {% endblock %}
