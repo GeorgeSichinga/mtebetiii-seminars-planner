@@ -33,6 +33,7 @@ class Student(models.Model):
         choices=PROFICIENCY_CHOICES, null=True, blank=True
     )
     password_hash = models.CharField(max_length=255, blank=True)
+    is_teacher = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

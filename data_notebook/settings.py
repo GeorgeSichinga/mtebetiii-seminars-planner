@@ -89,3 +89,9 @@ else:
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="learning@yourdomain.com")
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# Cookie/session hardening - secure cookies in production, works over plain HTTP locally
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True

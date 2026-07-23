@@ -1,24 +1,29 @@
 from datetime import timedelta
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse, Http404
 from django.contrib import messages
 from django.utils import timezone
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
+from django.core.cache import cache
 
-from .forms import StudentIntakeForm, SessionForm, NoteForm
+from .forms import StudentIntakeForm, SessionForm, NoteForm, AssignmentForm
 from .models import Student, Topic, StudentTopicSelection, Session, Assignment, Note
+
+
+def get_logged_in_student(request):
+    student_id = request.session.get("student_id")
+    if student_id:
+        return Student.objects.filter(id=student_id).first()
+    return None
 
 
 def starter_pack(request):
     """Registration for new visitors, or private curriculum picker once logged in."""
-    logged_in_student = None
-    student_id_in_session = request.session.get("student_id")
-    if student_id_in_session:
-        logged_in_student = Student.objects.filter(id=student_id_in_session).first()
+    logged_in_student = get_logged_in_student(request)
 
     topics = Topic.objects.all()
     tracks = {}
@@ -40,7 +45,7 @@ def starter_pack(request):
                 student=logged_in_student
             ).exclude(topic_id__in=selected_ids).delete()
             messages.success(request, "Your curriculum has been updated.")
-            return redirect("starter_pack")
+            return redirect("portal")
 
         if request.method == "POST" and "set_password" in request.POST:
             new_password = request.POST.get("new_password", "").strip()
@@ -81,6 +86,14 @@ def starter_pack(request):
         "topic_count": topics.count(),
     }
     return render(request, "core/starter_pack.html", context)
+
+
+def portal(request):
+    student = get_logged_in_student(request)
+    if not student:
+        messages.error(request, "Please log in to view your portal.")
+        return redirect("dashboard")
+    return render(request, "core/portal.html", {"student": student})
 
 
 SIGNER = TimestampSigner(salt="mtebetiii-dashboard-login")
@@ -131,7 +144,7 @@ def request_magic_link(request):
 
     send_mail(
         "Your dashboard login link",
-        f"Hi {student.name},\n\nClick this link to view your dashboard "
+        f"Hi {student.name},\n\nClick this link to log in "
         f"(valid for 15 minutes):\n\n{link}\n",
         getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
         [student.email],
@@ -142,18 +155,31 @@ def request_magic_link(request):
     return redirect("dashboard")
 
 
+MAX_LOGIN_ATTEMPTS = 5
+LOGIN_LOCKOUT_SECONDS = 60 * 15  # 15 minutes
+
+
 def password_login(request):
     email = request.POST.get("email", "").strip()
     password = request.POST.get("password", "").strip()
 
+    attempts_key = f"login_attempts:{email.lower()}"
+    attempts = cache.get(attempts_key, 0)
+
+    if attempts >= MAX_LOGIN_ATTEMPTS:
+        messages.error(request, "Too many failed attempts. Please try again in 15 minutes, or use the login link option.")
+        return redirect("dashboard")
+
     student = Student.objects.filter(email__iexact=email).first()
     if not student or not student.check_password(password):
+        cache.set(attempts_key, attempts + 1, timeout=LOGIN_LOCKOUT_SECONDS)
         messages.error(request, "Incorrect email or password.")
         return redirect("dashboard")
 
+    cache.delete(attempts_key)
     request.session["student_id"] = student.id
     messages.success(request, f"Welcome back, {student.name}.")
-    return redirect("dashboard", student_id=student.id)
+    return redirect("portal")
 
 
 def dashboard_login(request, token):
@@ -169,7 +195,7 @@ def dashboard_login(request, token):
     student = get_object_or_404(Student, id=student_id)
     request.session["student_id"] = student.id
     messages.success(request, f"Welcome back, {student.name}.")
-    return redirect("dashboard", student_id=student.id)
+    return redirect("portal")
 
 
 def dashboard_logout(request):
@@ -179,48 +205,83 @@ def dashboard_logout(request):
 
 
 def schedule(request):
+    """Scheduling requires login. Teachers can book with any student.
+    Regular students can only book a session with the teacher, for themselves."""
+    logged_in_student = get_logged_in_student(request)
+    if not logged_in_student:
+        messages.error(request, "Please log in to schedule a session.")
+        return redirect("dashboard")
+
     sessions = Session.objects.select_related("student", "topic").all()
+    if not logged_in_student.is_teacher:
+        sessions = sessions.filter(student=logged_in_student)
 
     if request.method == "POST":
         form = SessionForm(request.POST)
-        role = request.POST.get("role", "teacher")
-
         if form.is_valid():
             session = form.save(commit=False)
 
-            if role == "student" and not session.student_id:
-                email = form.cleaned_data.get("student_email", "").strip()
-                try:
-                    session.student = Student.objects.get(email__iexact=email)
-                except Student.DoesNotExist:
-                    messages.error(
-                        request,
-                        "We could not find a student with that email. "
-                        "Register on the Starter Pack page first."
-                    )
-                    context = {"form": form, "sessions": sessions}
+            if logged_in_student.is_teacher:
+                if not session.student_id:
+                    messages.error(request, "Please select a student.")
+                    context = {"form": form, "sessions": sessions, "is_teacher": True}
                     return render(request, "core/schedule.html", context)
-
-            if not session.student_id:
-                messages.error(request, "Please select a student, or provide your registered email.")
-                context = {"form": form, "sessions": sessions}
-                return render(request, "core/schedule.html", context)
+            else:
+                session.student = logged_in_student
 
             session.save()
-            messages.success(request, "Session scheduled.")
+
+            teacher = Student.objects.filter(is_teacher=True).first()
+            topic_line = f" on {session.topic.title}" if session.topic else ""
+            ics_link = request.build_absolute_uri(reverse("session_ics", args=[session.id]))
+            details = (
+                f"Session with {session.student.name}{topic_line}\n"
+                f"When: {session.scheduled_for:%Y-%m-%d %H:%M}\n"
+                f"Notes: {session.notes or 'None'}\n\n"
+                f"Add to your phone calendar: {ics_link}\n"
+            )
+
+            recipients = {session.student.email}
+            if teacher:
+                recipients.add(teacher.email)
+
+            for recipient in recipients:
+                send_mail(
+                    "Session scheduled - Mtebetiii Seminars and Talks",
+                    details,
+                    getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
+                    [recipient],
+                    fail_silently=True,
+                )
+
+            messages.success(request, "Session scheduled. A confirmation email has been sent.")
             return redirect("schedule")
     else:
         form = SessionForm()
 
+    if not logged_in_student.is_teacher:
+        form.fields.pop("student", None)
+        form.fields.pop("student_email", None)
+
     context = {
         "form": form,
         "sessions": sessions,
+        "is_teacher": logged_in_student.is_teacher,
     }
     return render(request, "core/schedule.html", context)
 
 
 def session_ics(request, session_id):
+    """Download a session as .ics. Only the student on the session, or the teacher, may access it."""
     session = get_object_or_404(Session, id=session_id)
+    logged_in_student = get_logged_in_student(request)
+
+    allowed = logged_in_student and (
+        logged_in_student.id == session.student_id or logged_in_student.is_teacher
+    )
+    if not allowed:
+        messages.error(request, "Please log in to access that calendar file.")
+        return redirect("dashboard")
 
     start = session.scheduled_for
     end = start + timedelta(hours=1)
@@ -254,25 +315,100 @@ def session_ics(request, session_id):
 
 def toggle_session_complete(request, session_id):
     session = get_object_or_404(Session, id=session_id)
+    logged_in_student = get_logged_in_student(request)
+
+    allowed = logged_in_student and (
+        logged_in_student.id == session.student_id or logged_in_student.is_teacher
+    )
+    if not allowed:
+        messages.error(request, "Please log in to update that session.")
+        return redirect("dashboard")
+
     session.is_completed = not session.is_completed
     session.save()
     return redirect("schedule")
 
 
 def notes(request):
+    """Anyone logged in can view notes. Only the teacher can upload new ones."""
+    logged_in_student = get_logged_in_student(request)
     all_notes = Note.objects.all()
 
     if request.method == "POST":
+        if not (logged_in_student and logged_in_student.is_teacher):
+            messages.error(request, "Only the teacher can upload notes.")
+            return redirect("notes")
         form = NoteForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             messages.success(request, "Note uploaded.")
             return redirect("notes")
     else:
-        form = NoteForm()
+        form = NoteForm() if (logged_in_student and logged_in_student.is_teacher) else None
 
     context = {
         "form": form,
         "notes": all_notes,
+        "is_teacher": bool(logged_in_student and logged_in_student.is_teacher),
     }
     return render(request, "core/notes.html", context)
+
+
+def note_attachment(request, note_id):
+    """Serve a note's attachment only to logged-in users."""
+    logged_in_student = get_logged_in_student(request)
+    if not logged_in_student:
+        messages.error(request, "Please log in to view that attachment.")
+        return redirect("dashboard")
+
+    note = get_object_or_404(Note, id=note_id)
+    if not note.attachment:
+        raise Http404("No attachment on this note.")
+
+    return FileResponse(note.attachment.open("rb"), as_attachment=False, filename=note.attachment.name.split("/")[-1])
+
+
+def assignments(request):
+    """Login required. Teacher can create assignments for any student; others see/manage only their own."""
+    logged_in_student = get_logged_in_student(request)
+    if not logged_in_student:
+        messages.error(request, "Please log in to view assignments.")
+        return redirect("dashboard")
+
+    if logged_in_student.is_teacher:
+        all_assignments = Assignment.objects.select_related("student", "topic", "session").all()
+
+        if request.method == "POST":
+            form = AssignmentForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Assignment created.")
+                return redirect("assignments")
+        else:
+            form = AssignmentForm()
+    else:
+        all_assignments = Assignment.objects.filter(student=logged_in_student).select_related("topic", "session")
+        form = None
+
+    context = {
+        "assignments": all_assignments,
+        "form": form,
+        "is_teacher": logged_in_student.is_teacher,
+    }
+    return render(request, "core/assignments.html", context)
+
+
+def toggle_assignment_done(request, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+    logged_in_student = get_logged_in_student(request)
+
+    allowed = logged_in_student and (
+        logged_in_student.id == assignment.student_id or logged_in_student.is_teacher
+    )
+    if not allowed:
+        messages.error(request, "Please log in to update that assignment.")
+        return redirect("dashboard")
+
+    assignment.is_done = not assignment.is_done
+    assignment.save()
+    return redirect("assignments")

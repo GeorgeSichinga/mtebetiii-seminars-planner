@@ -8,30 +8,14 @@
 <div class="grid md:grid-cols-2 gap-10">
   <div>
     <h2 class="text-lg font-bold mb-4">Plan a Session</h2>
-
-    <div class="mb-5">
-      <label class="block text-xs opacity-60 mb-1">I am a</label>
-      <select id="role-select" onchange="toggleRole()"
-        class="w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]">
-        <option value="teacher">Teacher (George)</option>
-        <option value="student">Student</option>
-      </select>
-    </div>
-
     <form method="post" class="space-y-4">
       {% csrf_token %}
-      <input type="hidden" name="role" id="role-hidden" value="teacher">
-
-      <div id="teacher-field">
+      {% if is_teacher %}
+      <div>
         <label class="block text-xs opacity-60 mb-1">student</label>
         {{ form.student }}
       </div>
-
-      <div id="student-field" class="hidden">
-        <label class="block text-xs opacity-60 mb-1">your registered email</label>
-        {{ form.student_email }}
-      </div>
-
+      {% endif %}
       <div>
         <label class="block text-xs opacity-60 mb-1">topic</label>
         {{ form.topic }}
@@ -77,13 +61,4 @@
     </ul>
   </div>
 </div>
-
-<script>
-  function toggleRole() {
-    const role = document.getElementById('role-select').value;
-    document.getElementById('role-hidden').value = role;
-    document.getElementById('teacher-field').classList.toggle('hidden', role === 'student');
-    document.getElementById('student-field').classList.toggle('hidden', role === 'teacher');
-  }
-</script>
 {% endblock %}

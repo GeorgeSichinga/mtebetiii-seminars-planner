@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Assignments{% endblock %}
+{% block content %}
+
+<h1 class="text-xl font-bold mb-8">Assignments</h1>
+
+<div class="grid {% if is_teacher %}md:grid-cols-2{% endif %} gap-10">
+  {% if is_teacher %}
+  <div>
+    <h2 class="text-lg font-bold mb-4">Create Assignment</h2>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-xs opacity-60 mb-1">student</label>
+        {{ form.student }}
+      </div>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">related topic (optional)</label>
+        {{ form.topic }}
+      </div>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">related session (optional)</label>
+        {{ form.session }}
+      </div>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">title</label>
+        {{ form.title }}
+      </div>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">description</label>
+        {{ form.description }}
+      </div>
+      <div>
+        <label class="block text-xs opacity-60 mb-1">due date</label>
+        {{ form.due_date }}
+      </div>
+      <button type="submit" class="bg-[var(--accent)] text-white px-5 py-2.5 text-sm hover:opacity-90 transition">
+        create_assignment()
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+  <div>
+    <h2 class="text-lg font-bold mb-4">{% if is_teacher %}All Assignments{% else %}Your Assignments{% endif %} ({{ assignments|length }})</h2>
+    <ul class="space-y-4">
+      {% for a in assignments %}
+        <li class="border-b rule pb-4">
+          <div class="flex items-center justify-between mb-1">
+            <p class="font-medium">{{ a.title }}{% if is_teacher %} &mdash; {{ a.student.name }}{% endif %}</p>
+            <form method="post" action="{% url 'toggle_assignment_done' a.id %}">
+              {% csrf_token %}
+              <button type="submit" class="text-xs px-3 py-1.5 border rule {% if a.is_done %}bg-[var(--accent)] text-white border-[var(--accent)]{% else %}hover:border-[var(--accent)]{% endif %} transition">
+                {% if a.is_done %}done{% else %}mark done{% endif %}
+              </button>
+            </form>
+          </div>
+          {% if a.description %}<p class="text-sm opacity-80 mb-1">{{ a.description }}</p>{% endif %}
+          <p class="text-xs opacity-60">{{ a.due_date|default:"no due date" }}{% if a.topic %} &middot; {{ a.topic.title }}{% endif %}</p>
+        </li>
+      {% empty %}
+        <li class="opacity-60 text-sm">No assignments yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

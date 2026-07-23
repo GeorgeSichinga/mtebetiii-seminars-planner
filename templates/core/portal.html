@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Your Portal{% endblock %}
+{% block content %}
+
+<h1 class="text-xl font-bold mb-2">Welcome, {{ student.name }}</h1>
+<p class="text-sm opacity-70 mb-10">What would you like to do?</p>
+
+<div class="grid sm:grid-cols-3 gap-4">
+  <a href="{% url 'starter_pack' %}" class="border rule p-6 hover:border-[var(--accent)] transition text-center">
+    <span class="block font-bold mb-1">Your Curriculum</span>
+    <span class="text-xs opacity-60">Review or update the topics you're covering</span>
+  </a>
+  <a href="{% url 'schedule' %}" class="border rule p-6 hover:border-[var(--accent)] transition text-center">
+    <span class="block font-bold mb-1">Make a Schedule</span>
+    <span class="text-xs opacity-60">Book a session with me</span>
+  </a>
+  <a href="{% url 'dashboard' student_id=student.id %}" class="border rule p-6 hover:border-[var(--accent)] transition text-center">
+    <span class="block font-bold mb-1">Dashboard</span>
+    <span class="text-xs opacity-60">See your progress and assignments</span>
+  </a>
+</div>
+{% endblock %}

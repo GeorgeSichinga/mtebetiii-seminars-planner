@@ -30,7 +30,7 @@
           <p class="text-xs opacity-60 mb-2">{{ note.created_at|date:"d M Y, H:i" }}</p>
           {% if note.content %}<p class="text-sm mb-2 leading-relaxed">{{ note.content }}</p>{% endif %}
           {% if note.attachment %}
-            <a href="{{ note.attachment.url }}" target="_blank" class="text-xs underline">view attachment</a>
+            <a href="{% url 'note_attachment' note.id %}" target="_blank" class="text-xs underline">view attachment</a>
           {% endif %}
         </li>
       {% empty %}

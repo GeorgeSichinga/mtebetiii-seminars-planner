@@ -1,5 +1,5 @@
 from django import forms
-from .models import Student, Session, Topic, Note
+from .models import Student, Session, Topic, Note, Assignment
 
 
 class StudentIntakeForm(forms.ModelForm):
@@ -93,3 +93,24 @@ class NoteForm(forms.ModelForm):
                 "placeholder": "Write your note here...",
             }),
         }
+
+
+class AssignmentForm(forms.ModelForm):
+    class Meta:
+        model = Assignment
+        fields = ["student", "topic", "session", "title", "description", "due_date"]
+        widgets = {
+            "student": forms.Select(attrs={"class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]"}),
+            "topic": forms.Select(attrs={"class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]"}),
+            "session": forms.Select(attrs={"class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]"}),
+            "title": forms.TextInput(attrs={"class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]", "placeholder": "Assignment title"}),
+            "description": forms.Textarea(attrs={"class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]", "rows": 3}),
+            "due_date": forms.DateInput(attrs={"type": "date", "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["topic"].required = False
+        self.fields["session"].required = False
+        self.fields["topic"].empty_label = "None"
+        self.fields["session"].empty_label = "None"
