@@ -39,6 +39,20 @@ class TopicSelectionForm(forms.Form):
 
 
 class SessionForm(forms.ModelForm):
+    student_email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={
+            "class": "w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]",
+            "placeholder": "the email you registered with",
+        }),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["student"].required = False
+        self.fields["student"].empty_label = "Select a student"
+        self.fields["topic"].empty_label = "Select a topic"
+
     class Meta:
         model = Session
         fields = ["student", "topic", "scheduled_for", "notes"]

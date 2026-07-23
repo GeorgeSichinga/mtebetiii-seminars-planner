@@ -1,4 +1,8 @@
+from datetime import timedelta
+
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
+from django.utils import timezone
 from django.contrib import messages
 from django.db.models import Prefetch
 
@@ -69,8 +73,30 @@ def schedule(request):
 
     if request.method == "POST":
         form = SessionForm(request.POST)
+        role = request.POST.get("role", "teacher")
+
         if form.is_valid():
-            form.save()
+            session = form.save(commit=False)
+
+            if role == "student" and not session.student_id:
+                email = form.cleaned_data.get("student_email", "").strip()
+                try:
+                    session.student = Student.objects.get(email__iexact=email)
+                except Student.DoesNotExist:
+                    messages.error(
+                        request,
+                        "We could not find a student with that email. "
+                        "Register on the Starter Pack page first."
+                    )
+                    context = {"form": form, "sessions": sessions}
+                    return render(request, "core/schedule.html", context)
+
+            if not session.student_id:
+                messages.error(request, "Please select a student, or provide your registered email.")
+                context = {"form": form, "sessions": sessions}
+                return render(request, "core/schedule.html", context)
+
+            session.save()
             messages.success(request, "Session scheduled.")
             return redirect("schedule")
     else:
@@ -81,6 +107,40 @@ def schedule(request):
         "sessions": sessions,
     }
     return render(request, "core/schedule.html", context)
+
+
+def session_ics(request, session_id):
+    """Download a single session as an .ics calendar file."""
+    session = get_object_or_404(Session, id=session_id)
+
+    start = session.scheduled_for
+    end = start + timedelta(hours=1)
+
+    def fmt(dt):
+        return dt.strftime("%Y%m%dT%H%M%S")
+
+    topic_line = f" - {session.topic.title}" if session.topic else ""
+    summary = f"Session with {session.student.name}{topic_line}"
+    description = (session.notes or "").replace("\n", "\\n").replace(",", "\\,")
+
+    ics_content = (
+        "BEGIN:VCALENDAR\r\n"
+        "VERSION:2.0\r\n"
+        "PRODID:-//Mtebetiii Seminars and Talks//EN\r\n"
+        "BEGIN:VEVENT\r\n"
+        f"UID:session-{session.id}@mtebetiii-seminars\r\n"
+        f"DTSTAMP:{fmt(timezone.now())}\r\n"
+        f"DTSTART:{fmt(start)}\r\n"
+        f"DTEND:{fmt(end)}\r\n"
+        f"SUMMARY:{summary}\r\n"
+        f"DESCRIPTION:{description}\r\n"
+        "END:VEVENT\r\n"
+        "END:VCALENDAR\r\n"
+    )
+
+    response = HttpResponse(ics_content, content_type="text/calendar")
+    response["Content-Disposition"] = f'attachment; filename="session-{session.id}.ics"'
+    return response
 
 
 def toggle_session_complete(request, session_id):

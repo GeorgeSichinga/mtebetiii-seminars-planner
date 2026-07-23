@@ -8,4 +8,5 @@ urlpatterns = [
     path("schedule/", views.schedule, name="schedule"),
     path("notes/", views.notes, name="notes"),
     path("schedule/<int:session_id>/toggle/", views.toggle_session_complete, name="toggle_session_complete"),
+    path("schedule/<int:session_id>/calendar.ics", views.session_ics, name="session_ics"),
 ]
