@@ -332,7 +332,12 @@ def toggle_session_complete(request, session_id):
 def notes(request):
     """Anyone logged in can view notes. Only the teacher can upload new ones."""
     logged_in_student = get_logged_in_student(request)
-    all_notes = Note.objects.all()
+    if logged_in_student and logged_in_student.is_teacher:
+        all_notes = Note.objects.select_related("owner").all()
+    elif logged_in_student:
+        all_notes = Note.objects.select_related("owner").filter(owner=logged_in_student)
+    else:
+        all_notes = Note.objects.none()
 
     if request.method == "POST":
         if not (logged_in_student and logged_in_student.is_teacher):
@@ -340,7 +345,9 @@ def notes(request):
             return redirect("notes")
         form = NoteForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            note = form.save(commit=False)
+            note.owner = logged_in_student
+            note.save()
             messages.success(request, "Note uploaded.")
             return redirect("notes")
     else:
@@ -362,6 +369,9 @@ def note_attachment(request, note_id):
         return redirect("dashboard")
 
     note = get_object_or_404(Note, id=note_id)
+    if not (logged_in_student.is_teacher or note.owner_id == logged_in_student.id):
+        messages.error(request, "You do not have permission to view that attachment.")
+        return redirect("notes")
     if not note.attachment:
         raise Http404("No attachment on this note.")
 

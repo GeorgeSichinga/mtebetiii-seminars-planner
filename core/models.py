@@ -136,6 +136,9 @@ class Assignment(models.Model):
 
 
 class Note(models.Model):
+    owner = models.ForeignKey(
+        Student, on_delete=models.CASCADE, related_name="notes"
+    )
     title = models.CharField(max_length=200)
     content = models.TextField(blank=True)
     attachment = models.FileField(upload_to="notes/", blank=True, null=True)
