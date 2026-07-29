@@ -1,7 +1,13 @@
 from django.urls import path
 from . import views
 
+
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
+
 urlpatterns = [
+    path("sentry-debug/", trigger_error),
     path("", views.starter_pack, name="starter_pack"),
     path("portal/", views.portal, name="portal"),
     path("dashboard/", views.dashboard, name="dashboard"),
