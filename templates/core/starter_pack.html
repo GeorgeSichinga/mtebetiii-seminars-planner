@@ -78,16 +78,18 @@
 
   {% if not has_password %}
     <p class="text-xs opacity-70 mb-2">Set a password so you can log in instantly next time, instead of waiting for an email link.</p>
-    <form method="post" class="flex gap-2">
-      {% csrf_token %}
-      <input type="hidden" name="set_password" value="1">
-      <input type="password" name="new_password" placeholder="new password (min 6 characters)"
-        class="border rule bg-transparent px-3 py-2 text-sm flex-1 focus:outline-none focus:border-[var(--accent)]" required>
-      <button type="submit" class="border rule px-4 py-2 text-sm hover:border-[var(--accent)] transition whitespace-nowrap">set password</button>
-    </form>
   {% else %}
-    <p class="text-xs opacity-60">Password login is set up for this account.</p>
+    <p class="text-xs opacity-70 mb-2">Forgot your password? Set a new one below.</p>
   {% endif %}
+  <form method="post" class="flex gap-2">
+    {% csrf_token %}
+    <input type="hidden" name="set_password" value="1">
+    <input type="password" name="new_password" placeholder="new password (min 6 characters)"
+      class="border rule bg-transparent px-3 py-2 text-sm flex-1 focus:outline-none focus:border-[var(--accent)]" required>
+    <button type="submit" class="border rule px-4 py-2 text-sm hover:border-[var(--accent)] transition whitespace-nowrap">
+      {% if not has_password %}set password{% else %}update password{% endif %}
+    </button>
+  </form>
 </div>
 
 <form method="post">
