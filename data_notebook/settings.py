@@ -9,6 +9,19 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-field-notebook-secret
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
 
+SENTRY_DSN = config('SENTRY_DSN', default='')
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=0.0,
+        send_default_pii=False,
+        environment='production' if not DEBUG else 'development',
+    )
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
