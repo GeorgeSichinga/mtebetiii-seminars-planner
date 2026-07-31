@@ -6,8 +6,18 @@ def trigger_error(request):
     division_by_zero = 1 / 0
 
 
+def sentry_check(request):
+    from django.conf import settings
+    from django.http import HttpResponse
+    dsn = getattr(settings, "SENTRY_DSN", "")
+    if dsn:
+        return HttpResponse(f"SENTRY_DSN is set, starts with: {dsn[:20]}...")
+    return HttpResponse("SENTRY_DSN is NOT set (empty string)")
+
+
 urlpatterns = [
     path("sentry-debug/", trigger_error),
+    path("sentry-check/", sentry_check),
     path("", views.starter_pack, name="starter_pack"),
     path("portal/", views.portal, name="portal"),
     path("dashboard/", views.dashboard, name="dashboard"),
