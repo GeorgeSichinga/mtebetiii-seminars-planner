@@ -128,6 +128,54 @@ def dashboard(request, student_id=None):
     return render(request, "core/dashboard.html", context)
 
 
+def students_overview(request):
+    """Teacher-only: see every student's topic picks and notify them it's been noted."""
+    logged_in_student = get_logged_in_student(request)
+    if not logged_in_student or not logged_in_student.is_teacher:
+        messages.error(request, "Please log in as a teacher to view this page.")
+        return redirect("dashboard")
+
+    if request.method == "POST" and "notify_student" in request.POST:
+        student = get_object_or_404(Student, id=request.POST.get("notify_student"))
+        selections = (
+            StudentTopicSelection.objects.filter(student=student)
+            .select_related("topic")
+        )
+        if not selections:
+            messages.error(request, f"{student.name} has not picked any topics yet.")
+            return redirect("students_overview")
+
+        topic_lines = "\n".join(f"- {s.topic.title}" for s in selections)
+        send_mail(
+            "Your topic selections have been noted - Mtebetiii Seminars and Talks",
+            (
+                f"Hi {student.name},\n\n"
+                f"This is a note to let you know I have seen and noted the topics "
+                f"you selected:\n\n{topic_lines}\n\n"
+                f"Please reply to this email (or message me on WhatsApp) to let me "
+                f"know when you would like to start the learning process, and any "
+                f"scheduling preferences you have.\n\n"
+                f"Talk soon."
+            ),
+            getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
+            [student.email],
+            fail_silently=True,
+        )
+        student.selections_acknowledged_at = timezone.now()
+        student.save(update_fields=["selections_acknowledged_at"])
+        messages.success(request, f"Notified {student.name} about their topic selections.")
+        return redirect("students_overview")
+
+    students = (
+        Student.objects.filter(is_teacher=False)
+        .prefetch_related("topic_selections__topic")
+        .order_by("-created_at")
+    )
+
+    context = {"students": students}
+    return render(request, "core/students_overview.html", context)
+
+
 def request_magic_link(request):
     email = request.POST.get("email", "").strip()
     if not email:
