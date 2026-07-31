@@ -91,18 +91,12 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Email config - Gmail SMTP (free, sends to any recipient, no domain needed)
-EMAIL_HOST_USER_GMAIL = config("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD_GMAIL = config("EMAIL_HOST_PASSWORD", default="")
+# Email config - Brevo (free, HTTPS API, works on Render free tier, no domain needed)
+BREVO_API_KEY = config("BREVO_API_KEY", default="")
 
-if EMAIL_HOST_USER_GMAIL and EMAIL_HOST_PASSWORD_GMAIL:
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = "smtp.gmail.com"
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = EMAIL_HOST_USER_GMAIL
-    EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD_GMAIL
-    EMAIL_TIMEOUT = 10
+if BREVO_API_KEY:
+    EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend"
+    ANYMAIL = {"SENDINBLUE_API_KEY": BREVO_API_KEY}
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
