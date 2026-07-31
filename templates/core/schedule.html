@@ -46,24 +46,26 @@
         var topicSelect = document.getElementById("id_topic");
         if (!studentSelect || !topicSelect) return;
 
-        var allOptions = Array.prototype.slice.call(topicSelect.options);
+        var allOptionsData = Array.prototype.map.call(topicSelect.options, function (opt) {
+          return { value: opt.value, text: opt.text };
+        });
 
         studentSelect.addEventListener("change", function () {
           var selected = studentSelect.options[studentSelect.selectedIndex];
           var topicsAttr = selected.getAttribute("data-topics") || "";
           var allowedIds = topicsAttr.split(",").filter(Boolean);
 
-          allOptions.forEach(function (opt) {
-            if (!opt.value) {
-              opt.hidden = false;
-              return;
-            }
-            opt.hidden = allowedIds.length > 0 && allowedIds.indexOf(opt.value) === -1;
+          var visible = allOptionsData.filter(function (opt) {
+            return !opt.value || allowedIds.length === 0 || allowedIds.indexOf(opt.value) !== -1;
           });
 
-          if (topicSelect.selectedOptions[0] && topicSelect.selectedOptions[0].hidden) {
-            topicSelect.value = "";
-          }
+          topicSelect.innerHTML = "";
+          visible.forEach(function (opt) {
+            var el = document.createElement("option");
+            el.value = opt.value;
+            el.text = opt.text;
+            topicSelect.appendChild(el);
+          });
         });
       })();
     </script>
