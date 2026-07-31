@@ -13,7 +13,13 @@
       {% if is_teacher %}
       <div>
         <label class="block text-xs opacity-60 mb-1">student</label>
-        {{ form.student }}
+        <select name="student" id="id_student"
+          class="w-full border rule bg-transparent px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]">
+          <option value="">Select a student</option>
+          {% for s in all_students %}
+            <option value="{{ s.id }}" data-topics="{{ s.selected_topic_ids_str }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
       </div>
       {% endif %}
       <div>
@@ -32,6 +38,36 @@
         schedule_session()
       </button>
     </form>
+
+    {% if is_teacher %}
+    <script>
+      (function () {
+        var studentSelect = document.getElementById("id_student");
+        var topicSelect = document.getElementById("id_topic");
+        if (!studentSelect || !topicSelect) return;
+
+        var allOptions = Array.prototype.slice.call(topicSelect.options);
+
+        studentSelect.addEventListener("change", function () {
+          var selected = studentSelect.options[studentSelect.selectedIndex];
+          var topicsAttr = selected.getAttribute("data-topics") || "";
+          var allowedIds = topicsAttr.split(",").filter(Boolean);
+
+          allOptions.forEach(function (opt) {
+            if (!opt.value) {
+              opt.hidden = false;
+              return;
+            }
+            opt.hidden = allowedIds.length > 0 && allowedIds.indexOf(opt.value) === -1;
+          });
+
+          if (topicSelect.selectedOptions[0] && topicSelect.selectedOptions[0].hidden) {
+            topicSelect.value = "";
+          }
+        });
+      })();
+    </script>
+    {% endif %}
   </div>
 
   <div>
