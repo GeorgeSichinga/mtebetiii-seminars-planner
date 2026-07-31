@@ -299,7 +299,7 @@ def schedule(request):
                     details,
                     getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"),
                     [recipient],
-                    fail_silently=True,
+                    fail_silently=False,
                 )
 
             messages.success(request, "Session scheduled. A confirmation email has been sent.")
