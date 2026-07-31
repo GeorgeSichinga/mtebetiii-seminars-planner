@@ -1,35 +1,7 @@
 from django.urls import path
 from . import views
 
-
-def trigger_error(request):
-    division_by_zero = 1 / 0
-
-
-def sentry_check(request):
-    from django.conf import settings
-    from django.http import HttpResponse
-    import sentry_sdk
-
-    dsn = getattr(settings, "SENTRY_DSN", "")
-    client = sentry_sdk.get_client()
-    is_active = client.is_active()
-
-    if is_active:
-        sentry_sdk.capture_message("Manual test message from /sentry-check/")
-        return HttpResponse(
-            f"SENTRY_DSN present: yes. SDK client active: {is_active}. "
-            f"Test message sent - check Sentry Issues tab for 'Manual test message from /sentry-check/'."
-        )
-    return HttpResponse(
-        f"SENTRY_DSN present: {bool(dsn)}. SDK client active: {is_active}. "
-        f"The SDK did not initialize even though DSN is set - check for an exception during sentry_sdk.init() at startup."
-    )
-
-
 urlpatterns = [
-    path("sentry-debug/", trigger_error),
-    path("sentry-check/", sentry_check),
     path("", views.starter_pack, name="starter_pack"),
     path("portal/", views.portal, name="portal"),
     path("dashboard/", views.dashboard, name="dashboard"),
