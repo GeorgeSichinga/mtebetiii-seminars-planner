@@ -310,11 +310,22 @@ def schedule(request):
     if not logged_in_student.is_teacher:
         form.fields.pop("student", None)
         form.fields.pop("student_email", None)
+    all_students = None
+    if logged_in_student.is_teacher:
+        all_students = list(
+            Student.objects.filter(is_teacher=False)
+            .prefetch_related("topic_selections")
+        )
+        for s in all_students:
+            s.selected_topic_ids_str = ",".join(
+                str(sel.topic_id) for sel in s.topic_selections.all()
+            )
 
     context = {
         "form": form,
         "sessions": sessions,
         "is_teacher": logged_in_student.is_teacher,
+        "all_students": all_students,
     }
     return render(request, "core/schedule.html", context)
 
