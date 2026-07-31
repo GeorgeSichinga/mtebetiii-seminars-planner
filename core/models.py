@@ -35,6 +35,10 @@ class Student(models.Model):
     password_hash = models.CharField(max_length=255, blank=True)
     is_teacher = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    selections_acknowledged_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="When the teacher last notified this student that their topic picks were noted."
+    )
 
     class Meta:
         ordering = ["name"]

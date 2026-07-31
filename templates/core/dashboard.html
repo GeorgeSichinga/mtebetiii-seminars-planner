@@ -28,7 +28,10 @@
   </details>
 </div>
 {% else %}
-<div class="mb-8 flex justify-end">
+<div class="mb-8 flex justify-end gap-4">
+  {% if student.is_teacher %}
+    <a href="{% url 'students_overview' %}" class="text-xs underline opacity-70 hover:accent">view students</a>
+  {% endif %}
   <a href="{% url 'dashboard_logout' %}" class="text-xs underline opacity-70 hover:accent">log out</a>
 </div>
 {% endif %}
